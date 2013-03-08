@@ -2,7 +2,10 @@ esprof is a simple (i.e. naive) implementation of a source-to-source transformat
 
 # Installation
 
+esprof is not (yet) available via npm, so installation is manual :
+
     $ git clone git@github.com:dufour/esprof.git
+    $ cd esprof
     $ npm install
 
 # Instrumenting the code
