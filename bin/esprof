@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+
+
+var fs = require('fs');
+var esprof;
+try {
+    esprof = require('esprof');
+} catch (e) {
+    esprof = require('../lib/main');
+}
+
+function showUsage() {
+    console.log('Usage:');
+    console.log('   esprof [options] <file.js>+');
+    console.log();
+    console.log('Available options:');
+    console.log();
+    console.log('  -v, --version  Shows program version');
+    console.log();
+    process.exit(1);
+}
+
+if (process.argv.length <= 2) {
+    showUsage();
+}
+
+var options = {
+  filenames: []
+};
+
+process.argv.splice(2).forEach(function (entry) {
+    if (entry === '-h' || entry === '--help') {
+        showUsage();
+    } else if (entry === '-v' || entry === '--version') {
+        console.log('esprof JavaScript profiler ' + require("../package").version);
+        console.log();
+        process.exit(0);
+    } else if (entry.slice(0, 2) === '--') {
+        console.log('Error: unknown option ' + entry + '.');
+        process.exit(1);
+    } else {
+        options.filenames.push(entry);
+    }
+});
+
+if (!options.filenames) {
+    console.log('Error: no input file.');
+    process.exit(1);
+}
+
+function processFile(fname) {
+    var content = fs.readFileSync(fname, 'utf-8');
+    var output = esprof.instrument(content);
+    console.log(output);
+}
+
+try {
+    options.filenames.forEach(processFile);
+} catch (e) {
+    console.log('Error: ' + e.message);
+    process.exit(1);
+}

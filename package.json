@@ -1,0 +1,17 @@
+{
+    "name":    "esprof",
+    "version": "0.0.1",
+    "author" : "Bruno Dufour <dufour@iro.umontreal.ca>",
+    "description" : "A simple source-to-source transformation for profiling",
+    "private": true,
+    "main"   : "./lib/main.js",
+    "bin" : {
+        "esprof" : "./bin/esprof"
+    },
+    "dependencies": {
+        "esprima"    : "1.0.x",
+        "escodegen"  : "~0.0.15",
+        "estraverse" : "~0.0.4"
+    },
+    "license" : "MIT"
+}
