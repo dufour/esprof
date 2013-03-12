@@ -31,7 +31,7 @@
         indent -= 1;
     }
 
-    esprof$registerEvents({
+    esprof$registerCallbacks({
         onMethodEntry: onMethodEntry,
         onMethodExit: onMethodExit,
         onAlloc: onObjectAlloc

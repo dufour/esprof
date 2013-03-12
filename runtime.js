@@ -10,7 +10,7 @@ var esprof$callbacks = {
     "afterCall"     : function (recv, fn, args, loc) {},
 };
 
-function esprof$registerEvents(events) {
+function esprof$registerCallbacks(events) {
     var callbacks = esprof$callbacks;
     for (var p in events) {
         if (callbacks.hasOwnProperty(p)) {
