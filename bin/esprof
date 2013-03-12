@@ -9,54 +9,41 @@ try {
     esprof = require('../lib/main');
 }
 
-function showUsage() {
-    console.log('Usage:');
-    console.log('   esprof [options] <file.js>+');
-    console.log();
-    console.log('Available options:');
-    console.log();
-    console.log('  -v, --version  Shows program version');
-    console.log();
-    process.exit(1);
-}
+var cli = require('commander');
 
-if (process.argv.length <= 2) {
-    showUsage();
-}
-
-var options = {
-  filenames: []
-};
-
-process.argv.splice(2).forEach(function (entry) {
-    if (entry === '-h' || entry === '--help') {
-        showUsage();
-    } else if (entry === '-v' || entry === '--version') {
-        console.log('esprof JavaScript profiler ' + require("../package").version);
-        console.log();
-        process.exit(0);
-    } else if (entry.slice(0, 2) === '--') {
-        console.log('Error: unknown option ' + entry + '.');
-        process.exit(1);
-    } else {
-        options.filenames.push(entry);
-    }
+cli
+    .version(require("../package").version)
+    .usage('[options] <file.js>+');
+esprof.EVENTS.forEach(function (e) {
+    // cli.option("--" + e, "Enable " + e + " event [true]", true);
+    cli.option("--no-" + e, "Disable " + e + " event", false);
 });
 
-if (!options.filenames) {
-    console.log('Error: no input file.');
-    process.exit(1);
+function parseCmdLine() {
+    cli.parse(process.argv);
 }
 
 function processFile(fname) {
     var content = fs.readFileSync(fname, 'utf-8');
-    var output = esprof.instrument(content);
+    var options = {
+        scriptName: fname
+    };
+    esprof.EVENTS.forEach(function (e) {
+        options[e] = cli[e];
+    });
+
+    var output = esprof.instrument(content, options);
     console.log(output);
 }
 
-try {
-    options.filenames.forEach(processFile);
-} catch (e) {
-    console.log('Error: ' + e.message);
-    process.exit(1);
+function main() {
+    parseCmdLine();
+    if (cli.args.length === 0) {
+        console.error('Error: no input file.');
+        cli.help();
+    }
+
+    cli.args.forEach(processFile);
 }
+
+main();

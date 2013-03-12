@@ -11,7 +11,9 @@
     "dependencies": {
         "esprima"    : "1.0.x",
         "escodegen"  : "~0.0.15",
-        "estraverse" : "~0.0.4"
+        "estraverse" : "~0.0.4",
+        "xtend"      : "2.0.x",
+        "commander"  : "1.1.x"
     },
     "license" : "MIT"
 }

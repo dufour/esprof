@@ -1,22 +1,54 @@
-var origObjCreate = Object.create;
+var esprof$origObjCreate = Object.create;
 
-function onObjectAlloc(obj) {
-    // TODO: instrument
+var esprof$callbacks = {
+    "onMethodEntry" : function (fn, args, loc) {},
+    "onMethodExit"  : function (fn, retval, loc) {},
+    "onAlloc"       : function (obj, kind, loc) {},
+    "onPropRead"    : function (obj, prop, loc) {},
+    "onPropWrite"   : function (obj, prop, val, loc) {},
+    "beforeCall"    : function (recv, fn, args, loc) {},
+    "afterCall"     : function (recv, fn, args, loc) {},
+};
+
+function esprof$registerEvents(events) {
+    var callbacks = esprof$callbacks;
+    for (var p in events) {
+        if (callbacks.hasOwnProperty(p)) {
+            var callback = events[p];
+            if (callback) {
+                callbacks[p] = callback;
+            }
+        }
+    }
+};
+
+function esprof$onMethodEntry(fn, args, loc) {
+    esprof$callbacks.onMethodEntry(fn, args, loc);
+}
+
+function esprof$onMethodExit(fn, retval, loc) {
+    esprof$callbacks.onMethodExit(fn, retval, loc);
+    return retval;
+}
+
+function esprof$onObjectAlloc(obj, kind, loc) {
+    var replacement = esprof$callbacks.onAlloc(obj, kind, loc);
+    if (replacement !== undefined) return replacement;
     return obj;
 }
 
-function onPropRead(obj, prop) {
-    // TODO: instrument
+function esprof$onPropRead(obj, prop, loc) {
+    esprof$callbacks.onPropRead(obj, prop, loc);
     return obj[prop];
 }
 
-function onPropWrite(obj, prop, value) {
-    // TODO: instrument
+function esprof$onPropWrite(obj, prop, value, loc) {
+    esprof$callbacks.onPropWrite(obj, prop, value, loc);
     obj[prop] = value;
     return value;
 }
 
-function onPropOpWrite(obj, prop, lhs, rhs, op) {
+function esprof$onPropOpWrite(obj, prop, lhs, rhs, op, loc) {
     var val;
     switch (op) {
         case "*":
@@ -55,41 +87,42 @@ function onPropOpWrite(obj, prop, lhs, rhs, op) {
         default:
             throw "Unknown operator";
     }
-    return onPropWrite(obj, prop, val);
+    return esprof$onPropWrite(obj, prop, val, loc);
 }
 
-function onPropUpdate(obj, prop, op) {
-    var v = onPropRead(obj, prop);
+function esprof$onPropUpdate(obj, prop, op, loc) {
+    var v = esprof$onPropRead(obj, prop, loc);
     switch (op) {
         case "++x":
-            return onPropWrite(obj, prop, v + 1);
+            return esprof$onPropWrite(obj, prop, v + 1, loc);
         case "--x":
-            return onPropWrite(obj, prop, v - 1);
+            return esprof$onPropWrite(obj, prop, v - 1, loc);
         case "x++":
-            onPropWrite(obj, prop, v + 1);
+            esprof$onPropWrite(obj, prop, v + 1, loc);
             return v;
         case "x--":
-            onPropWrite(obj, prop, v - 1);
+            esprof$onPropWrite(obj, prop, v - 1, loc);
             return v;
     }
 
     throw "Unknown operator"; // Should never happen
 }
 
-function onCall(self, fn, argArray) {
-    // TODO: instrument
+function esprof$onCall(self, fn, argArray, loc) {
+    esprof$callbacks.beforeCall(self, fn, argArray, loc);
     var retval = fn.apply(self, argArray);
-    if (fn === origObjCreate) {
-        retval = onObjectAlloc(retval);
+    esprof$callbacks.afterCall(self, fn, argArray, loc);
+    if (fn === esprof$origObjCreate) {
+        retval = esprof$onObjectAlloc(retval, loc);
     }
     return retval;
 }
 
-function onDirectCall(self, fn, argArray) {
-    return onCall(self, fn, argArray);
+function esprof$onDirectCall(self, fn, argArray, loc) {
+    return esprof$onCall(self, fn, argArray, loc);
 }
 
-function onPropCall(obj, prop, argArray) {
-    var fn = onPropRead(obj, prop);
-    return onCall(obj, fn, argArray);
+function esprof$onPropCall(obj, prop, argArray, loc) {
+    var fn = esprof$onPropRead(obj, prop, loc);
+    return esprof$onCall(obj, fn, argArray, loc);
 }
