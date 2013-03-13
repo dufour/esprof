@@ -1,7 +1,7 @@
 (function (exports) {
     if (typeof print === undefined) print = console.log;
 
-    var PROFILE_CUTOFF = 0.001;
+    var PROFILE_CUTOFF = 0; //.001;
     var currentTime = function () {
         return new Date().getTime();
     };
@@ -9,7 +9,8 @@
     var profiles = {
         "<toplevel>" : {
             cumulativeTime: 0,
-            selfTime: 0
+            selfTime: 0,
+            invocationCount: 1
         }
     };
     var timers = [snapshot()];
@@ -59,17 +60,20 @@
             if (!prof) {
                 profiles[fnName] = {
                     cumulativeTime: millis,
-                    selfTime: (millis - timer.millisInChildren)
+                    selfTime: (millis - timer.millisInChildren),
+                    invocationCount: 1
                 };
             } else {
                 prof.cumulativeTime += millis;
                 prof.selfTime += (millis - timer.millisInChildren);
+                prof.invocationCount += 1;
             }
         }
         timers[timers.length - 1].millisInChildren += millis;
     }
 
     function lpad(s, width, pad) {
+        if (typeof s !== "string") s = String(s);
         if (!pad) pad = " ";
         while (s.length < width) {
             s = pad + s;
@@ -86,7 +90,8 @@
     }
 
     function dumpFunctionProfile(fn, i, functions) {
-        var totalMillis = profiles["<toplevel>"].cumulativeTime;
+        var scriptProf = profiles["<toplevel>"];
+        var totalMillis = scriptProf.cumulativeTime;
         var prof = profiles[fn];
         var millis = prof.selfTime;
         var selfTimeRatio = millis / totalMillis;
@@ -96,10 +101,11 @@
             return false;
         }
 
+        var count = lpad(prof.invocationCount, Math.max(String(scriptProf.maxCount).length, 7));
         var selfTime = lpad(percent(selfTimeRatio), 6);
         var cumulTime = lpad(percent(prof.cumulativeTime, totalMillis), 6);
 
-        print(selfTime + "   " + cumulTime + "   " + fn);
+        print(count + "   " + selfTime + "   " + cumulTime + "   " + fn);
         return true;
     }
 
@@ -108,17 +114,19 @@
         var endTime = currentTime();
         var timer = timers[0];
         var totalMillis = endTime - timer.start;
-        print("Execution: " + (totalMillis / 1000));
         var scriptProf = profiles["<toplevel>"];
         scriptProf.cumulativeTime += totalMillis;
         scriptProf.selfTime += totalMillis - timer.millisInChildren;
 
         // Profile output
         var functions = Object.keys(profiles);
-        functions.sort(function (a,b) { return profiles[b].selfTime - profiles[a].selfTime; });
+        functions.sort(function (a,b) { return profiles[b].invocationCount - profiles[a].invocationCount; });
+        scriptProf.maxCount = functions.reduce(function (prev, v) {
+            return v > prev ? v : prev;
+        }, 0);
 
         print("\n\nProfile\n--------------------------------------------------------------------------------");
-        print("[self]   [cumul]   [function]");
+        print(lpad("[count]", Math.max(String(scriptProf.maxCount).length, 7)) + "   [self]   [cumul]   [function]");
         functions.every(dumpFunctionProfile);
         print("--------------------------------------------------------------------------------");
 
