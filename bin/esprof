@@ -13,7 +13,8 @@ var cli = require('commander');
 
 cli
     .version(require("../package").version)
-    .usage('[options] <file.js>+');
+    .usage('[options] <file.js>+')
+    .option("-o, --output [file]", "Specify an output file");
 esprof.EVENTS.forEach(function (e) {
     // cli.option("--" + e, "Enable " + e + " event [true]", true);
     cli.option("--no-" + e, "Disable " + e + " event", false);
@@ -23,7 +24,7 @@ function parseCmdLine() {
     cli.parse(process.argv);
 }
 
-function processFile(fname) {
+function processFile(fname, out) {
     var content = fs.readFileSync(fname, 'utf-8');
     var options = {
         scriptName: fname
@@ -33,7 +34,8 @@ function processFile(fname) {
     });
 
     var output = esprof.instrument(content, options);
-    console.log(output);
+    out.write(output);
+    out.write("\n");
 }
 
 function main() {
@@ -43,7 +45,18 @@ function main() {
         cli.help();
     }
 
-    cli.args.forEach(processFile);
+    var out;
+    if (cli.output) {
+        out = require('fs').createWriteStream(cli.output);
+    } else {
+        out = process.stdout;
+    }
+
+    for (var i = 0; i < cli.args.length; i++) {
+        processFile(cli.args[i], out);
+    }
+
+    if (cli.output) out.end();
 }
 
 main();
