@@ -16,15 +16,15 @@ Code can be instrumented using the `esprof` script located in the `bin` director
 
 # Running the instrumented code
 
-The instrumented code requires the `runtime.js` library to execute. For example, using d8 :
+The instrumented code requires the `runtime.js` library to execute. This file is located in the `runtime` directory. For example, using d8 :
 
-    $ d8 runtime.js myprog_instrumented.js
+    $ d8 runtime/runtime.js myprog_instrumented.js
 
 # Running the builtin profilers
 
-Two profilers are provided : `tracer.js` and `profiler.js`. To use a profiler, simply load it after `runtime.js`, e.g. :
+Two profilers are provided in the `runtime` directory: `tracer.js` and `profiler.js`. To use a profiler, simply load it after `runtime.js`, e.g. :
 
-    $ d8 runtime.js tracer.js myprog_instrumented.js
+    $ d8 runtime/runtime.js runtime/tracer.js myprog_instrumented.js
 
 To produce the profiling output when using `profiler.js`, simply load `profiler_end.js` at the end of the execution, or insert a call to `esprof$dumpProfile();` in the code at a point when output is required.
 

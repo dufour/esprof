@@ -13,7 +13,8 @@
         "escodegen"  : "~0.0.15",
         "estraverse" : "~0.0.4",
         "xtend"      : "2.0.x",
-        "commander"  : "1.1.x"
+        "commander"  : "1.1.x",
+        "mocha"      : "1.8.x"
     },
     "license" : "MIT"
 }
