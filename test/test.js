@@ -72,6 +72,24 @@ describe('Instrumentation', function() {
             var state = instrumentAndExecScript(script);
             assert.equal(1, state["esprof$counters"].onAlloc);
         });
+
+        it('should handle Function object creation', function() {
+            var script = "var foo = new Function('');";
+            var state = instrumentAndExecScript(script);
+            assert.equal(1, state["esprof$counters"].onAlloc);
+        });
+
+        it.skip('should handle Function object creation without "new"', function() {
+            var script = "var foo = Function('');";
+            var state = instrumentAndExecScript(script);
+            assert.equal(1, state["esprof$counters"].onAlloc);
+        });
+
+        it.skip('should handle object creation from the standard library', function() {
+            var script = "var arr = ['a', 'b', 'c']; var slice = arr.slice(2);";
+            var state = instrumentAndExecScript(script);
+            assert.equal(2, state["esprof$counters"].onAlloc);
+        });
     });
 
     describe('Calls', function() {
@@ -285,6 +303,44 @@ describe('Instrumentation', function() {
                 onPropWrite: 3
             }, state["esprof$counters"]);
             assert.equal(625, state.x.n);
+        });
+    });
+
+    describe('Function definitions', function() {
+        it('should register function declarations', function() {
+            var script = "function foo() {};";
+            var state = instrumentAndExecScript(script);
+            assert.equal(1, state["esprof$counters"].fnDefinitions);
+        });
+
+        it('should register nested function declarations', function() {
+            var script = "function foo() { function bar() {}; }; foo(); var baz = function () { function bif() {}; }; baz(); ";
+            var state = instrumentAndExecScript(script);
+            assert.equal(4, state["esprof$counters"].fnDefinitions);
+        });
+
+        it('should register nested function expressions', function() {
+            var script = "function foo() { var bar = function () {}; }; foo(); var baz = function () { var bif = function () {}; }; baz();";
+            var state = instrumentAndExecScript(script);
+            assert.equal(4, state["esprof$counters"].fnDefinitions);
+        });
+
+        it('should register function expressions', function() {
+            var script = "var foo = function () {};";
+            var state = instrumentAndExecScript(script);
+            assert.equal(1, state["esprof$counters"].fnDefinitions);
+        });
+
+        it.skip('should register Function object creation', function() {
+            var script = "var foo = new Function('');";
+            var state = instrumentAndExecScript(script);
+            assert.equal(1, state["esprof$counters"].fnDefinitions);
+        });
+
+        it.skip('should register Function object creation without "new"', function() {
+            var script = "var foo = Function('');";
+            var state = instrumentAndExecScript(script);
+            assert.equal(1, state["esprof$counters"].fnDefinitions);
         });
     });
 });

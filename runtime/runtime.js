@@ -1,13 +1,14 @@
 var esprof$origObjCreate = Object.create;
 
 var esprof$callbacks = {
-    "onMethodEntry" : function (fn, args, loc) {},
-    "onMethodExit"  : function (fn, retval, loc) {},
-    "onAlloc"       : function (obj, kind, loc) {},
-    "onPropRead"    : function (obj, prop, loc) {},
-    "onPropWrite"   : function (obj, prop, val, loc) {},
-    "beforeCall"    : function (recv, fn, args, loc) {},
-    "afterCall"     : function (recv, fn, args, loc) {},
+    onMethodEntry     : function (fn, args, loc) {},
+    onMethodExit      : function (fn, retval, loc) {},
+    onAlloc           : function (obj, kind, loc) {},
+    onPropRead        : function (obj, prop, loc) {},
+    onPropWrite       : function (obj, prop, val, loc) {},
+    beforeCall        : function (recv, fn, args, loc) {},
+    afterCall         : function (recv, fn, args, loc) {},
+    onFunctionDefined : function (fn, loc) {}
 };
 
 function esprof$registerCallbacks(events) {
@@ -125,4 +126,9 @@ function esprof$onDirectCall(self, fn, argArray, loc) {
 function esprof$onPropCall(obj, prop, argArray, loc) {
     var fn = esprof$onPropRead(obj, prop, loc);
     return esprof$onCall(obj, fn, argArray, loc);
+}
+
+function esprof$onFunctionDefined(fn, loc) {
+    esprof$callbacks.onFunctionDefined(fn, loc);
+    return fn;
 }
