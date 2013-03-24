@@ -9,7 +9,7 @@
         return s;
     }
 
-    function onObjectAlloc(obj, kind, loc) {
+    function onObjectAlloc(e, obj, kind, loc) {
         if (kind === "new" && typeof obj === "function") {
             // new function object created, proxy it
             return function () {
@@ -22,20 +22,18 @@
         }
     }
 
-    function onMethodEntry(name, args, loc) {
+    function onMethodEntry(e, name, args, loc) {
         print(indentString() + name + " (" + loc + ")");
         indent += 1;
     }
 
-    function onMethodExit(name, retval, loc) {
+    function onMethodExit(e, name, retval, loc) {
         indent -= 1;
     }
 
-    esprof$registerCallbacks({
-        onMethodEntry: onMethodEntry,
-        onMethodExit: onMethodExit,
-        onAlloc: onObjectAlloc
-    });
+    esprof.on("methodEntry", onMethodEntry);
+    esprof.on("methodExit", onMethodExit);
+    esprof.on("alloc", onObjectAlloc);
 })();
 
 
