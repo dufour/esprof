@@ -88,7 +88,7 @@ function esprof$registerCallbacks(events) {
     for (var p in events) {
         esprof.on(p, events[p]);
     }
-};
+}
 
 function esprof$onMethodEntry(fn, args, loc) {
     esprof$callbacks.methodEntry("methodEntry", fn, args, loc);

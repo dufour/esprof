@@ -14,7 +14,8 @@ var cli = require('commander');
 cli
     .version(require("../package").version)
     .usage('[options] <file.js>+')
-    .option("-o, --output [file]", "Specify an output file");
+    .option("-o, --output [file]", "Specify an output file")
+    .option("-p, --profiler [file]", "Specify a profiler file to infer required events (overrides command-line switches)");
 esprof.EVENTS.forEach(function (e) {
     // cli.option("--" + e, "Enable " + e + " event [true]", true);
     cli.option("--no-" + e, "Disable " + e + " event", false);
@@ -22,6 +23,17 @@ esprof.EVENTS.forEach(function (e) {
 
 function parseCmdLine() {
     cli.parse(process.argv);
+
+    if (cli.profiler) {
+        var profScript = fs.readFileSync(cli.profiler);
+        var events = getEventsFromScript(profScript);
+        esprof.EVENTS.forEach(function (e) {
+            cli[e] = false;
+        });
+        events.forEach(function (e) {
+            cli[e] = true;
+        });
+    }
 }
 
 function processFile(fname, out) {
@@ -36,6 +48,28 @@ function processFile(fname, out) {
     var output = esprof.instrument(content, options);
     out.write(output);
     out.write("\n");
+}
+
+function getEventsFromScript(script) {
+    var vm = require("vm");
+    var context = vm.createContext({});
+    var allEvents = "[" + esprof.EVENTS.map(function (s) { return '"' + s + '"'; }) + "]";
+    var runtimeOverride = [
+        "var esprof = {registeredEvents: []};",
+        "esprof.on = function (event, callback) {",
+        "   if (event === 'all' || event === 'null') esprof.registeredEvents = " + allEvents + ";",
+        "   else if (typeof event === 'string') esprof.registeredEvents.push(event);",
+        "   else esprof.registeredEvents = esprof.registeredEvents.concat(event);",
+        "};",
+        "function esprof$registerCallbacks(events) {",
+        "    for (var p in events) {",
+        "        esprof.on(p, events[p]);",
+        "     }",
+        "}"
+    ].join("\n");
+    vm.runInContext(runtimeOverride, context);
+    vm.runInContext(script, context);
+    return context.esprof.registeredEvents;
 }
 
 function main() {

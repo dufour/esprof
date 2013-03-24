@@ -14,6 +14,14 @@ Code can be instrumented using the `esprof` script located in the `bin` director
 
     $ bin/esprof myprog.js > myprog_instrumented.js
 
+The previous command will instrument the code to generate all events. More fined grained control can be achieved by specifying a specific profiler to use:
+
+    $ bin/esprof --profiler runtime/tracer.js myprog.js > myprog_instrumented.js
+
+In this case, esprof will infer the events required by the profiler, and instrument the code for this particular set of events. Alternatively, events can be disabled with switches:
+
+    $ bin/esprof --no-functionDefined --no-call myprog.js > myprog_instrumented.js
+
 # Running the instrumented code
 
 The instrumented code requires the `runtime.js` library to execute. This file is located in the `runtime` directory. For example, using d8 :
