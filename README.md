@@ -44,16 +44,40 @@ Custom profilers can be written easily by registering callbacks for one or more 
         ...
     });
 
-Supported events &rightarrow; callbacks are :
+Supported events (and their associated callback signatures) are :
 
-* `methodEntry` &rightarrow; `(event, fn, args, loc)`: called when a function starts executing
-* `methodExit` &rightarrow; `(event, fn, retval, loc)`: called when a function returns normally
-* `alloc` &rightarrow; `(event, obj, kind, loc)`: called when an object is allocated
-* `propRead` &rightarrow; `(event, obj, prop, loc)`: called when a property is read from an object
-* `propWrite` &rightarrow; `(event, obj, prop, val, loc)`: called when a property is written to an object
-* `beforeCall` &rightarrow; `(event, recv, fn, args, loc)`: called before a function call (on the caller side)
-* `afterCall` &rightarrow; `(event, recv, fn, args, loc)`: called after a function call returns normally (on the caller side)
-* `functionDefined` &rightarrow; `(event, fn, loc)`: called when a function is defined (declared or created as a result of a function expression)
+
+* `methodEntry` : `(event, fn, args, loc)`
+
+    Called when a function starts executing
+
+* `methodExit` : `(event, fn, retval, loc)`
+
+    Called when a function returns normally
+
+* `alloc` : `(event, obj, kind, loc)`
+
+    Called when an object is allocated
+
+* `propRead` : `(event, obj, prop, loc)`
+
+    Called when a property is read from an object
+
+* `propWrite` : `(event, obj, prop, val, loc)`
+
+    Called when a property is written to an object
+
+* `beforeCall` : `(event, recv, fn, args, loc)`
+
+    Called before a function call (on the caller side)
+
+* `afterCall` : `(event, recv, fn, args, loc)`
+
+    Called after a function call returns normally (on the caller side)
+
+* `functionDefined` : `(event, fn, loc)`
+
+    Called when a function is defined (declared or created as a result of a function expression)
 
 # Current limitations
 
