@@ -68,6 +68,17 @@
                 prof.selfTime += (millis - timer.millisInChildren);
                 prof.invocationCount += 1;
             }
+        } else {
+            var prof = profiles[fnName];
+            if (!prof) {
+                profiles[fnName] = {
+                    cumulativeTime: 0,
+                    selfTime: 0,
+                    invocationCount: 1
+                };
+            } else {
+                profiles[fnName].invocationCount += 1;
+            }
         }
         timers[timers.length - 1].millisInChildren += millis;
     }
